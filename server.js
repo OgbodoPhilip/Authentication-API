@@ -1,0 +1,87 @@
+import express from "express";
+import dotenv from "dotenv";
+import connectDB from "./db.js";
+import User from "./model/userSchema.js";
+import routes from "./routes/index.js";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import passport from "passport"
+import "./strategies/local-strategy.js";
+
+dotenv.config();
+connectDB();
+const app = express();
+app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 60000 * 60 }
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(routes);
+
+
+
+
+
+app.get("/", (req, res) => {
+  console.log(req.session);
+  console.log(req.session.id);
+  req.session.visited = true;
+  
+  res.cookie("cookiename","namevalue",{maxAge:3600000,  httpOnly: true})
+  
+  res.send("Hello World");
+});
+
+app.post("/api/auth", passport.authenticate("local"), (req, res) => {
+  res.json({
+    success: true,
+    message: "Authentication successful",
+    sessionId: req.session.id,
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email
+    }
+  });
+});
+
+
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  if (err.name === "ValidationError") {
+    const errors = Object.values(err.errors).map(e => e.message);
+
+    return res.status(400).json({
+      success: false,
+      type: "Validation Error",
+      errors
+    });
+  }
+
+  if (err.code === 11000) {
+    return res.status(400).json({
+      success: false,
+      type: "Duplicate Error",
+      message: "Email already exists"
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error"
+  });
+});
+
+
+
+app.listen(process.env.PORT, () => {
+  console.log(`Server connected to port ${process.env.PORT}`);
+});

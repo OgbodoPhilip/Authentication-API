@@ -8,6 +8,7 @@ import session from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport"
 import "./strategies/local-strategy.js";
+import { isAuthenticated } from "./middlewares/authMiddleware.js";
 
 dotenv.config();
 connectDB();
@@ -50,6 +51,19 @@ app.post("/api/auth", passport.authenticate("local"), (req, res) => {
     }
   });
 });
+
+
+
+
+
+app.get("/dashboard", isAuthenticated, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: `Welcome to your dashboard, ${req.user.name}`,
+    user: req.user
+  });
+});
+
 
 
 

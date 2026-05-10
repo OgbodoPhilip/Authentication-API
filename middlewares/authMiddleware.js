@@ -1,10 +1,10 @@
 export const isAuthenticated = (req, res, next) => {
-  if (!req.session.userId) {
-    return res.status(401).json({
-      success: false,
-      message: "Unauthorized"
-    });
+  if (req.isAuthenticated()) {
+    return next();
   }
 
-  next();
+  return res.status(401).json({
+    success: false,
+    message: "Unauthorized. Please login first."
+  });
 };

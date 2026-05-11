@@ -39,17 +39,37 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-app.post("/api/auth", passport.authenticate("local"), (req, res) => {
-  res.json({
-    success: true,
-    message: "Authentication successful",
-    sessionId: req.session.id,
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email
+app.post("/api/auth", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return next(err);
     }
-  });
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: info.message
+      });
+    }
+
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+
+      res.json({
+        success: true,
+        message: "Authentication successful",
+        sessionId: req.session.id,
+        user: {
+          id: req.user._id,
+          name: req.user.name,
+          email: req.user.email
+        }
+      });
+    });
+
+  })(req, res, next);
 });
 
 
@@ -64,6 +84,17 @@ app.get("/dashboard", isAuthenticated, (req, res) => {
   });
 });
 
+
+
+
+
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
+});
 
 
 
@@ -93,7 +124,6 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error"
   });
 });
-
 
 
 app.listen(process.env.PORT, () => {

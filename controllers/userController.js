@@ -1,50 +1,5 @@
 import User from "../model/userSchema.js";
-import mongoose from "mongoose";
-// export const createUser = async (req, res,next) => {
-//   try {
-//     const { name, email, password } = req.body;
-//     const user = new User({ name, email, password });
-//     await user.save();
-//     res.status(201).json(user);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-
-
-
-
-
-// export const createUser = async (req, res, next) => {
-//   try {
-//     const { name, email, password } = req.body;
-
-//     if (!password) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Password is required"
-//       });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     const user = await User.create({
-//       name,
-//       email,
-//       password: hashedPassword
-//     });
-
-//     res.status(201).json(user);
-
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-
-
-
+import mongoose from "mongoose"; 
 import bcrypt from "bcrypt";
 
 

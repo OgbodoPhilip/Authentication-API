@@ -1,5 +1,7 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+
 import connectDB from "./db.js";
 import User from "./model/userSchema.js";
 import routes from "./routes/index.js";
@@ -10,17 +12,28 @@ import passport from "passport"
 import "./strategies/local-strategy.js";
 import { isAuthenticated } from "./middlewares/authMiddleware.js";
 
-dotenv.config();
+
 connectDB();
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 60000 * 60 }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "sessions"
+    }),
+
+    cookie: {
+      maxAge: 1000 * 60 * 60, // 1 hour
+      httpOnly: true
+    }
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(routes);
@@ -73,7 +86,26 @@ app.post("/api/auth", (req, res, next) => {
 });
 
 
+app.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"]
+  })
+);
 
+app.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login"
+  }),
+  (req, res) => {
+    res.json({
+      success: true,
+      message: "Google login successful",
+      user: req.user
+    });
+  }
+);
 
 
 app.get("/dashboard", isAuthenticated, (req, res) => {

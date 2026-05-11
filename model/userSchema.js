@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    googleId: {
+      type: String,
+      default: null
+    },
+
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -23,8 +28,8 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: [3, "Password must be at least 3 characters"]
+      minlength: [3, "Password must be at least 3 characters"],
+      default: null
     }
   },
   {
